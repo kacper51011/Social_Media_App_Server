@@ -34,4 +34,15 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
+// route
+
+const apiRoutes = require("./routes/apiRoutes");
+app.use("/api", apiRoutes);
+
+// setting up server
+
 const PORT = process.env.PORT || 3002;
+
+app.listen(PORT, () => {
+  console.log("new server started");
+});
