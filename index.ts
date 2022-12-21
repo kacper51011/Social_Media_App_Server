@@ -5,7 +5,6 @@ import multer from "multer";
 import morgan from "morgan";
 import path from "path";
 import { fileURLToPath } from "url";
-import { createBrotliCompress } from "zlib";
 const helmet = require("helmet");
 // configs
 
@@ -32,3 +31,7 @@ const storage = multer.diskStorage({
     callback(null, file.originalname);
   },
 });
+
+const upload = multer({ storage });
+
+const PORT = process.env.PORT || 3002;
