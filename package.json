@@ -1,3 +1,5 @@
+
+
 {
   "dependencies": {
     "bcrypt": "^5.1.0",
@@ -13,6 +15,8 @@
     "nodemon": "^2.0.20"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.13",
+    "@types/morgan": "^1.9.3",
     "@types/node": "^18.11.17",
     "prisma": "^4.8.0",
     "ts-node": "^10.9.1",
