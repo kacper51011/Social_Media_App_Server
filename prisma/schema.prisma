@@ -33,4 +33,5 @@ model Post {
   likes           String
   comments        String[]
   user            User     @relation(fields: [userId], references: [id])
+  createdAt       DateTime @default(now())
 }

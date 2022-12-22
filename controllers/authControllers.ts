@@ -1,62 +1,55 @@
 import { Request, Response, NextFunction } from "express";
+import { userRegisterSchema } from "../schemas/authSchemas";
+import { PrismaClient } from "@prisma/client";
 
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
+
+const prisma = new PrismaClient();
 
 interface IJWT {
   id: string;
   email: string;
   nickname: string;
-  photo: string;
+  picturePath: string;
 }
 
 interface UserRequest extends Request {
   user: IJWT | undefined;
 }
 
-export const signUp = async (
+export const register = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const { nickname, email, password, confirmPassword } = req.body;
+    const { firstName, lastName, email, password, job, picturePath } = req.body;
 
     // inputs check
-    if (!(nickname && email && password)) {
+    const validation = userRegisterSchema.safeParse(req.body);
+    if (!validation.success) {
       return res.status(400).json({
         status: "failed",
-        message: "Provide all inputs!",
+        message: "Fullfil every field properly",
       });
     }
+
     // email already in database check
-    let userExists = await User.findOne({ email });
+    let userExists = await prisma.user.findOne({ email });
     if (userExists) {
       return res.status(400).json({
         status: "failed",
-        message: "email already in use!",
+        message: "Email already in use!",
       });
     }
 
-    // nickname already in database check
-    userExists = await User.findOne({ nickname });
-    if (userExists) {
-      return res.status(400).json({
-        status: "failed",
-        message: "nickname already in use!",
-      });
-    }
-    // confirm password === password check
-    if (password !== confirmPassword) {
-      return res.status(400).json({
-        status: "failed",
-        message: "passwords do not match!",
-      });
-    }
-    const newUser = await User.create(req.body);
-
+    // creating user
+    const newUser = await prisma.user.create(req.body);
     const token = jwt.sign(
-      { id: newUser._id, nickname: newUser.nickname, email: newUser.email },
+      {
+        id: newUser._id,
+      },
       process.env.JWT_SECRET,
       {
         expiresIn: process.env.JWT_EXPIRE,
