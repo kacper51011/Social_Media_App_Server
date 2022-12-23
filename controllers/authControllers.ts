@@ -1,11 +1,12 @@
 import { Request, Response, NextFunction } from "express";
 import { userRegisterSchema } from "../schemas/authSchemas";
+import dotenv from "dotenv";
 import { PrismaClient } from "@prisma/client";
-
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcryptjs");
+import jwt, { Secret } from "jsonwebtoken";
+import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
+dotenv.config();
 
 interface IJWT {
   id: string;
@@ -24,8 +25,6 @@ export const register = async (
   next: NextFunction
 ) => {
   try {
-    const { firstName, lastName, email, job, picturePath } = req.body;
-
     // inputs check
     const validation = userRegisterSchema.safeParse(req.body);
     if (!validation.success) {
@@ -36,7 +35,9 @@ export const register = async (
     }
 
     // email already in database check
-    let userExists = await prisma.user.findOne({});
+    let userExists = await prisma.user.findFirst({
+      where: { email: req.body.email },
+    });
     if (userExists) {
       return res.status(400).json({
         status: "failed",
@@ -46,7 +47,7 @@ export const register = async (
 
     // creating user
     req.body.password = await bcrypt.hash(req.body.password, 12);
-    const newUser = await prisma.user.create(req.body);
+    const newUser = await prisma.user.create({ data: { ...req.body } });
 
     res
       .status(201)
@@ -80,7 +81,9 @@ export const login = async (
       });
     }
 
-    const user = await prisma.user.findOne({ email });
+    const user = await prisma.user.findFirst({
+      where: { email: req.body.email },
+    });
 
     // is user existing in database check
 
@@ -103,11 +106,12 @@ export const login = async (
 
     const token = jwt.sign(
       {
-        id: user._id,
-        nickname: user.nickname,
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
         email: user.email,
       },
-      process.env.JWT_SECRET,
+      process.env.JWT_SECRET as Secret,
       {
         expiresIn: process.env.JWT_EXPIRE,
       }
@@ -135,7 +139,7 @@ export const login = async (
       .json({
         status: "success",
         user: {
-          id: user._id,
+          id: user.id,
         },
         cookieOptions: cookieOptions,
       });

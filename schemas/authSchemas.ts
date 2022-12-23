@@ -7,6 +7,7 @@ export const userRegisterSchema = z.object({
   password: z.string().min(8).max(200),
   job: z.string().max(50),
   picturePath: z.string(),
+  location: z.string(),
 });
 
 export const userLoginSchema = z.object({

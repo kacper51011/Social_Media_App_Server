@@ -1,11 +1,8 @@
 import express from "express";
+import userRouter from "./userRoutes";
 
 const app = express();
 
-const postsRoutes = require("./postsRoutes");
-app.use("/posts", postsRoutes);
+app.use("/user", userRouter);
 
-const userRoutes = require("./userRoutes");
-app.use("/users", userRoutes);
-
-module.exports = app;
+export default app;

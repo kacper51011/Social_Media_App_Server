@@ -5,8 +5,8 @@ import multer from "multer";
 import morgan from "morgan";
 import path from "path";
 import { fileURLToPath } from "url";
-const helmet = require("helmet");
-// configs
+import helmet from "helmet";
+import apiRoutes from "./routes/apiRoutes";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -36,7 +36,6 @@ const upload = multer({ storage });
 
 // route
 
-const apiRoutes = require("./routes/apiRoutes");
 app.use("/api", apiRoutes);
 
 // setting up server
