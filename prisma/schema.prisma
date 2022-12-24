@@ -11,19 +11,25 @@ model User {
   id           String    @id @default(auto()) @map("_id") @db.ObjectId
   firstName    String
   lastName     String
-  email        String
+  email        String    @unique
   password     String
   picturePath  String
   location     String
   job          String
   viewsProfile Int       @default(0)
   posts        Post[]
-  Comment      Comment[]
+  comments     Comment[]
+
+  followedBy    User[]   @relation("UserFollows", fields: [followedByIDs], references: [id])
+  followedByIDs String[] @db.ObjectId
+  following     User[]   @relation("UserFollows", fields: [followingIDs], references: [id])
+  followingIDs  String[] @db.ObjectId
 }
 
 model Post {
-  id              String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId          String   @db.ObjectId
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId          String    @db.ObjectId
+  user            User      @relation(fields: [userId], references: [id])
   firstName       String
   lastName        String
   location        String
@@ -31,14 +37,18 @@ model Post {
   userPicturePath String
   picturePath     String
   likes           String
-  comments        String[]
-  user            User     @relation(fields: [userId], references: [id])
-  createdAt       DateTime @default(now())
+  comments        Comment[]
+  createdAt       DateTime  @default(now())
 }
 
 model Comment {
-  id          String @id @default(auto()) @map("_id") @db.ObjectId
-  userId      String @db.ObjectId
-  user        User   @relation(fields: [userId], references: [id])
-  description String
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id])
+
+  postId String @db.ObjectId
+  post   Post   @relation(fields: [postId], references: [id])
+
+  content String
 }
