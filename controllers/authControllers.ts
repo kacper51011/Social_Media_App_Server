@@ -8,17 +8,6 @@ import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 dotenv.config();
 
-interface IJWT {
-  id: string;
-  email: string;
-  nickname: string;
-  picturePath: string;
-}
-
-interface UserRequest extends Request {
-  user: IJWT | undefined;
-}
-
 export const register = async (
   req: Request,
   res: Response,
