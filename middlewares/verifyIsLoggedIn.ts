@@ -15,9 +15,9 @@ const verifyIsLoggedIn = async (
 ) => {
   try {
     const token = req.cookies.access_token;
-    if (!token) return res.status(403).send("access denied");
+    if (!token) return res.status(401).send("unauthorized");
     const key = process.env.JWT_SECRET;
-    if (!key) return res.status(500).send("server error");
+    if (!key) return res.status(401).send("unauthorized");
     try {
       const decoded = await jwt.verify(token, key as Secret);
       // assigning the req.user to the decoded token, it allow us to use user data after authorization

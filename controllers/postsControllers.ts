@@ -46,6 +46,18 @@ export const getUserPosts = async (
   } catch (err) {}
 };
 
+export const createPost = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { userId, content, picturePath } = req.body;
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+  } catch (err) {}
+};
+
 export const likePost = async (
   req: Request,
   res: Response,
