@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { PrismaClient } from "@prisma/client";
+import { postSchema } from "../schemas/postsSchemas";
 
 const prisma = new PrismaClient();
 
@@ -52,18 +53,53 @@ export const createPost = async (
   next: NextFunction
 ) => {
   try {
-    const { userId, content, picturePath } = req.body;
+    const { userId, description, picturePath, location } = req.body;
+    const validation = postSchema.safeParse(req.body);
+    if (!validation.success) {
+      return res.status(400).json({
+        status: "failed",
+        message: "Fullfil every field properly",
+      });
+    }
 
     const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) return res.status(401).send("unauthorized");
+    const newPost = await prisma.post.create({
+      data: {
+        firstName: String(user.firstName),
+        lastName: String(user.lastName),
+        userPicturePath: String(user.picturePath),
+        userId: String(userId),
+        location: String(location),
+        picturePath: String(picturePath),
+        description: String(description),
+      },
+    });
   } catch (err) {}
 };
 
-export const likePost = async (
+export const likeUnlikePost = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
+    const { userId, postId } = req.body;
+
+    const likeUser = await prisma.user.findUnique({ where: { id: userId } });
+    const likePost = await prisma.post.findUnique({ where: { id: postId } });
+
+    if (!likeUser || !likePost)
+      return res.status(400).send("something went wrong!");
+
+    if (likePost.likes.includes(likeUser.id)) {
+      likePost.likes.filter((id) => id !== likeUser.id);
+
+      const updatedPostLikes = await prisma.post.update({
+        where: { id: likePost.id },
+        data: { likes: likePost.likes },
+      });
+    }
   } catch (err) {}
 };
 

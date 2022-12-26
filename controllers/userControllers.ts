@@ -61,7 +61,7 @@ export const followUnfollow = async (
       return res.status(400).send("something went wrong");
 
     // checking if the first user follow second user (at first if he does)
-    if (user?.followingIDs.includes(userToFollowId) && userToFollow) {
+    if (user.followingIDs.includes(userToFollowId) && userToFollow) {
       user.followingIDs = user.followingIDs.filter(
         (id) => id !== userToFollowId
       );

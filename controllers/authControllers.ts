@@ -14,6 +14,7 @@ export const register = async (
   next: NextFunction
 ) => {
   try {
+    const { firstName, lastName, email, job, picturePath, location } = req.body;
     // inputs check
     const validation = userRegisterSchema.safeParse(req.body);
     if (!validation.success) {
@@ -36,7 +37,17 @@ export const register = async (
 
     // creating user
     req.body.password = await bcrypt.hash(req.body.password, 12);
-    const newUser = await prisma.user.create({ data: { ...req.body } });
+    const newUser = await prisma.user.create({
+      data: {
+        firstName: String(firstName),
+        lastName: String(lastName),
+        password: String(req.body.password),
+        email: String(email),
+        picturePath: String(picturePath),
+        location: String(location),
+        job: String(job),
+      },
+    });
 
     res
       .status(201)
