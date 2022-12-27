@@ -99,8 +99,18 @@ export const likeUnlikePost = async (
         where: { id: likePost.id },
         data: { likes: likePost.likes },
       });
+    } else {
+      likePost.likes.push(likeUser.id);
+
+      const updatedPostLikes = await prisma.post.update({
+        where: { id: likePost.id },
+        data: { likes: likePost.likes },
+      });
     }
-  } catch (err) {}
+    return res.status(200).send("success");
+  } catch (err) {
+    return res.status(400).send("something went wrong");
+  }
 };
 
 export const commentPost = async (
@@ -109,5 +119,14 @@ export const commentPost = async (
   next: NextFunction
 ) => {
   try {
+    const { id, postId, content } = req.body;
+
+    const newComment = prisma.comment.create({
+      data: {
+        userId: String(id),
+        postId: String(postId),
+        content: String(content),
+      },
+    });
   } catch (err) {}
 };
