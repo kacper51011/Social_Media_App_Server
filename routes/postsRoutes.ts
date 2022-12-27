@@ -4,14 +4,16 @@ import {
   getUserPosts,
   likeUnlikePost,
   commentPost,
+  createPost,
 } from "../controllers/postsControllers";
 import verifyIsLoggedIn from "../middlewares/verifyIsLoggedIn";
 
 const postRouter = express.Router();
 
-postRouter.use("/likePost", likeUnlikePost);
-postRouter.use("/getPosts", getPosts);
-postRouter.use("/commentPost", commentPost);
-postRouter.use("/getUserPosts", getUserPosts);
+postRouter.route("/likePost").post(likeUnlikePost);
+postRouter.route("/getPosts").get(getPosts);
+postRouter.route("/commentPost").post(commentPost);
+postRouter.route("/getUserPosts").get(getUserPosts);
+postRouter.route("/createPost").post(createPost);
 
 export default postRouter;

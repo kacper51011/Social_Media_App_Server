@@ -75,6 +75,17 @@ export const createPost = async (
         description: String(description),
       },
     });
+
+    const updatedUser = await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        postsIds: {
+          push: newPost.id,
+        },
+      },
+    });
+
+    return res.status(200).send("post created");
   } catch (err) {}
 };
 
@@ -121,11 +132,20 @@ export const commentPost = async (
   try {
     const { id, postId, content } = req.body;
 
-    const newComment = prisma.comment.create({
+    const newComment = await prisma.comment.create({
       data: {
         userId: String(id),
         postId: String(postId),
         content: String(content),
+      },
+    });
+
+    const updatedPost = await prisma.post.update({
+      where: { id: String(postId) },
+      data: {
+        commentsIds: {
+          push: newComment.id,
+        },
       },
     });
   } catch (err) {}

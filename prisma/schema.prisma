@@ -18,6 +18,7 @@ model User {
   job          String
   viewsProfile Int       @default(0)
   posts        Post[]
+  postsIds     String[]  @db.ObjectId
   comments     Comment[]
 
   followedBy    User[]   @relation("UserFollows", fields: [followedByIDs], references: [id])
@@ -38,6 +39,7 @@ model Post {
   picturePath     String
   likes           String[]
   comments        Comment[]
+  commentsIds     String[]  @db.ObjectId
   createdAt       DateTime  @default(now())
 }
 
@@ -50,5 +52,6 @@ model Comment {
   postId String @db.ObjectId
   post   Post   @relation(fields: [postId], references: [id])
 
-  content String
+  content   String
+  createdAt DateTime @default(now())
 }
