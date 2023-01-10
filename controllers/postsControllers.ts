@@ -13,6 +13,8 @@ export const getPosts = async (
     const skip = Number(req.query.skip) | 0;
     const take = 10;
 
+    const count = await prisma.post.count();
+
     const results = await prisma.post.findMany({
       skip: skip,
       take: take,
@@ -20,8 +22,14 @@ export const getPosts = async (
 
     return res.status(200).json({
       posts: results,
+      count: count,
     });
-  } catch (err) {}
+  } catch (err) {
+    return res.status(400).json({
+      status: "failed",
+      message: "something went wrong",
+    });
+  }
 };
 
 export const getUserPosts = async (
@@ -33,6 +41,8 @@ export const getUserPosts = async (
     const skip = Number(req.query.skip) | 0;
     const take = 10;
 
+    const count = await prisma.post.count();
+
     const results = await prisma.post.findMany({
       skip: skip,
       take: take,
@@ -43,8 +53,14 @@ export const getUserPosts = async (
 
     return res.status(200).json({
       posts: results,
+      count: count,
     });
-  } catch (err) {}
+  } catch (err) {
+    return res.status(400).json({
+      status: "failed",
+      message: "something went wrong",
+    });
+  }
 };
 
 export const createPost = async (
@@ -148,5 +164,6 @@ export const commentPost = async (
         },
       },
     });
+    return res.status(200).json({ data: newComment });
   } catch (err) {}
 };

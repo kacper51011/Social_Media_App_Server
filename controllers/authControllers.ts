@@ -4,9 +4,24 @@ import dotenv from "dotenv";
 import { PrismaClient } from "@prisma/client";
 import jwt, { Secret } from "jsonwebtoken";
 import bcrypt from "bcryptjs";
+import multer from "multer";
 
 const prisma = new PrismaClient();
 dotenv.config();
+
+const storage = multer.diskStorage({
+  destination(req, file, callback) {
+    callback(null, "public/assets");
+  },
+  filename(req, file, callback) {
+    callback(null, `${Date.now()}-${file.originalname}`);
+  },
+});
+
+export const upload = multer({
+  storage: storage,
+  limits: { fileSize: 5 * 1000 * 1000 },
+});
 
 export const register = async (
   req: Request,
@@ -14,18 +29,34 @@ export const register = async (
   next: NextFunction
 ) => {
   try {
-    const { firstName, lastName, email, job, picturePath, location } = req.body;
+    const { firstName, lastName, email, job, location, password } = req.body;
+
+    if (!req.file) {
+      return res
+        .status(400)
+        .json({ status: "failed", message: "Provide correct profile photo" });
+    }
+    console.log(req.file.path);
+
     // inputs check
-    const validation = userRegisterSchema.safeParse(req.body);
+    console.log(req.body);
+    const validation = userRegisterSchema.safeParse({
+      firstName,
+      lastName,
+      email,
+      job,
+      location,
+      password,
+    });
     if (!validation.success) {
       return res.status(400).json({
         status: "failed",
-        message: "Fullfil every field properly",
+        message: validation.error,
       });
     }
 
     // email already in database check
-    let userExists = await prisma.user.findFirst({
+    let userExists = await prisma.user.findUnique({
       where: { email: req.body.email },
     });
     if (userExists) {
@@ -43,7 +74,7 @@ export const register = async (
         lastName: String(lastName),
         password: String(req.body.password),
         email: String(email),
-        picturePath: String(picturePath),
+        picturePath: String(req.file.path),
         location: String(location),
         job: String(job),
       },
@@ -70,7 +101,7 @@ export const login = async (
   next: NextFunction
 ) => {
   try {
-    const { email, password, dontLogout } = req.body;
+    const { email, password } = req.body;
 
     // email and password input check
 
@@ -81,7 +112,7 @@ export const login = async (
       });
     }
 
-    const user = await prisma.user.findFirst({
+    const user = await prisma.user.findUnique({
       where: { email: req.body.email },
     });
 
@@ -113,35 +144,21 @@ export const login = async (
       },
       process.env.JWT_SECRET as Secret,
       {
-        expiresIn: process.env.JWT_EXPIRE,
+        expiresIn: "10d",
       }
     );
 
-    let cookieOptions = {};
-    if (dontLogout) {
-      cookieOptions = {
+    res
+      .status(200)
+      .cookie("access_token", token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
         maxAge: 1000 * 60 * 60 * 24 * 7,
-      };
-    } else {
-      cookieOptions = {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-      };
-    }
-
-    res
-      .status(200)
-      .cookie("access_token", token, cookieOptions)
+      })
       .json({
         status: "success",
-        user: {
-          id: user.id,
-        },
-        cookieOptions: cookieOptions,
+        user: user,
       });
     next();
   } catch (err) {
