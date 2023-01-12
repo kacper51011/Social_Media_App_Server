@@ -80,7 +80,7 @@ export const register = async (
       },
     });
 
-    res
+    return res
       .status(201)
 
       .json({
@@ -134,34 +134,29 @@ export const login = async (
         message: "Uncorrect password",
       });
     }
-
     const token = jwt.sign(
       {
-        id: user.id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
+        user: user.id,
       },
       process.env.JWT_SECRET as Secret,
       {
-        expiresIn: "10d",
+        expiresIn: "30 days",
       }
     );
 
-    res
+    return res
       .status(200)
       .cookie("access_token", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
-        maxAge: 1000 * 60 * 60 * 24 * 7,
+        httpOnly: true,
+        maxAge: 9000000,
+        path: "/",
       })
       .json({
         status: "success",
         user: user,
       });
-    next();
   } catch (err) {
-    next(err);
+    return next(err);
   }
 };

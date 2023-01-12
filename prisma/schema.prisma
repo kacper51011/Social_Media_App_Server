@@ -8,18 +8,19 @@ datasource db {
 }
 
 model User {
-  id           String    @id @default(auto()) @map("_id") @db.ObjectId
-  firstName    String
-  lastName     String
-  email        String    @unique
-  password     String
-  picturePath  String
-  location     String
-  job          String
-  viewsProfile Int       @default(0)
-  posts        Post[]
-  postsIds     String[]  @db.ObjectId
-  comments     Comment[]
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  firstName     String
+  lastName      String
+  email         String    @unique
+  password      String
+  picturePath   String
+  location      String
+  job           String
+  viewsProfile  Int       @default(0)
+  posts         Post[]
+  postsIds      String[]  @db.ObjectId
+  comments      Comment[]
+  likedPostsIDs String[]  @db.ObjectId
 
   followedBy    User[]   @relation("UserFollows", fields: [followedByIDs], references: [id])
   followedByIDs String[] @db.ObjectId

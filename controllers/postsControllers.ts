@@ -121,19 +121,31 @@ export const likeUnlikePost = async (
 
     if (likePost.likes.includes(likeUser.id)) {
       likePost.likes.filter((id) => id !== likeUser.id);
+      likeUser.likedPostsIDs.filter((id) => id !== likePost.id);
 
       const updatedPostLikes = await prisma.post.update({
         where: { id: likePost.id },
         data: { likes: likePost.likes },
+      });
+      const updatedUserLikes = await prisma.user.update({
+        where: { id: likeUser.id },
+        data: { likedPostsIDs: likeUser.likedPostsIDs },
       });
     } else {
       likePost.likes.push(likeUser.id);
+      likeUser.likedPostsIDs.push(likePost.id);
 
       const updatedPostLikes = await prisma.post.update({
         where: { id: likePost.id },
         data: { likes: likePost.likes },
       });
+
+      const updatedUserLikes = await prisma.user.update({
+        where: { id: likeUser.id },
+        data: { likedPostsIDs: likeUser.likedPostsIDs },
+      });
     }
+
     return res.status(200).send("success");
   } catch (err) {
     return res.status(400).send("something went wrong");

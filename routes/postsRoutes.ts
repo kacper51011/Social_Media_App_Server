@@ -6,7 +6,6 @@ import {
   commentPost,
   createPost,
 } from "../controllers/postsControllers";
-import verifyIsLoggedIn from "../middlewares/verifyIsLoggedIn";
 
 const postRouter = express.Router();
 

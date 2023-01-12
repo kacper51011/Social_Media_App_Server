@@ -1,8 +1,31 @@
 import { NextFunction, Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
+import { UserRequest } from "../middlewares/verifyIsLoggedIn";
 
 const prisma = new PrismaClient();
 
+export const getAuthorizedUser = async (
+  req: UserRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    if (!req.user) return next();
+    const id = req.user.id;
+
+    const user = await prisma.user.findUnique({ where: { id: id } });
+
+    if (!user) return res.status(400).send("couldn`t find the user");
+
+    return res.status(200).json({
+      user: user,
+    });
+  } catch (err) {
+    return res.status(400).send(err);
+  }
+};
+
+// todo: change the message data
 export const getUser = async (
   req: Request,
   res: Response,
@@ -22,26 +45,26 @@ export const getUser = async (
   }
 };
 
-export const getUserFollows = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const id = req.params.id;
-    const user = await prisma.user.findUnique({ where: { id: id } });
+// export const getUserFollows = async (
+//   req: Request,
+//   res: Response,
+//   next: NextFunction
+// ) => {
+//   try {
+//     const id = req.params.id;
+//     const user = await prisma.user.findUnique({ where: { id: id } });
 
-    if (!user) return res.status(400).send("couldn`t find the user");
+//     if (!user) return res.status(400).send("couldn`t find the user");
 
-    // todo
+//     // todo
 
-    const followedByUser = await Promise.all(
-      user.followingIDs.map((follow) =>
-        prisma.user.findUnique({ where: { id: follow } })
-      )
-    );
-  } catch {}
-};
+//     const followedByUser = await Promise.all(
+//       user.followingIDs.map((follow) =>
+//         prisma.user.findUnique({ where: { id: follow } })
+//       )
+//     );
+//   } catch {}
+// };
 
 export const followUnfollow = async (
   req: Request,

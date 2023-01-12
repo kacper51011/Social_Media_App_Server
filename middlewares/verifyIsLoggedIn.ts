@@ -4,8 +4,11 @@ import jwt, { JwtPayload, Secret } from "jsonwebtoken";
 
 dotenv.config();
 
-interface UserRequest extends Request {
-  user?: JwtPayload;
+export interface UserRequest extends Request {
+  user?: UserPayload | undefined;
+}
+interface UserPayload {
+  id: string;
 }
 
 const verifyIsLoggedIn = async (
@@ -14,20 +17,20 @@ const verifyIsLoggedIn = async (
   next: NextFunction
 ) => {
   try {
-    const token = req.cookies.access_token;
-    if (!token) return res.status(401).send("unauthorized");
-    const key = process.env.JWT_SECRET;
-    if (!key) return res.status(401).send("unauthorized");
+    const token = req.cookies["access_token"];
+
     try {
-      const decoded = await jwt.verify(token, key as Secret);
+      const decoded = (await jwt.verify(
+        token,
+        process.env.JWT_SECRET as Secret
+      )) as UserPayload;
       // assigning the req.user to the decoded token, it allow us to use user data after authorization
-      const { decodedInfo } = decoded as JwtPayload;
-      req.user = decodedInfo;
+      req.user = decoded;
     } catch (err) {
       next(err);
     }
   } catch (err) {
-    return next(err);
+    next(err);
   }
 
   next();
