@@ -69,8 +69,18 @@ export const createPost = async (
   next: NextFunction
 ) => {
   try {
-    const { userId, description, picturePath, location } = req.body;
-    const validation = postSchema.safeParse(req.body);
+    const { userId, description } = req.body;
+    if (!req.file) {
+      return res
+        .status(400)
+        .json({ status: "failed", message: "Provide correct post photo" });
+    }
+
+    const validation = postSchema.safeParse({
+      userId: userId,
+      picturePath: req.file.path,
+      description: description,
+    });
     if (!validation.success) {
       return res.status(400).json({
         status: "failed",
@@ -86,8 +96,7 @@ export const createPost = async (
         lastName: String(user.lastName),
         userPicturePath: String(user.picturePath),
         userId: String(userId),
-        location: String(location),
-        picturePath: String(picturePath),
+        picturePath: String(req.file.path),
         description: String(description),
       },
     });
@@ -101,8 +110,16 @@ export const createPost = async (
       },
     });
 
-    return res.status(200).send("post created");
-  } catch (err) {}
+    return res.status(200).json({
+      status: "succes",
+      message: newPost.id,
+    });
+  } catch (err) {
+    return res.status(400).json({
+      status: "failed",
+      message: "something went wrong",
+    });
+  }
 };
 
 export const likeUnlikePost = async (

@@ -1,4 +1,5 @@
 import express from "express";
+import { upload } from "../controllers/authControllers";
 import {
   getPosts,
   getUserPosts,
@@ -13,6 +14,6 @@ postRouter.route("/likePost").post(likeUnlikePost);
 postRouter.route("/getPosts").get(getPosts);
 postRouter.route("/commentPost").post(commentPost);
 postRouter.route("/getUserPosts").get(getUserPosts);
-postRouter.route("/createPost").post(createPost);
+postRouter.route("/createPost").post(upload.single("postPhoto"), createPost);
 
 export default postRouter;

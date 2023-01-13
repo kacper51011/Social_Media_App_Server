@@ -1,6 +1,11 @@
 import express from "express";
 import verifyIsLoggedIn from "../middlewares/verifyIsLoggedIn";
-import { register, login, upload } from "../controllers/authControllers";
+import {
+  register,
+  login,
+  upload,
+  logout,
+} from "../controllers/authControllers";
 import {
   followUnfollow,
   getAuthorizedUser,
@@ -13,6 +18,7 @@ userRouter.route("/login").post(login);
 
 userRouter.use(verifyIsLoggedIn);
 userRouter.route("/checkIsVerified").get(getAuthorizedUser);
+userRouter.route("/logout").delete(logout);
 
 userRouter.route("/follow").patch(followUnfollow);
 

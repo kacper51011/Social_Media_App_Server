@@ -5,6 +5,7 @@ import { PrismaClient } from "@prisma/client";
 import jwt, { Secret } from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import multer from "multer";
+import { UserRequest } from "../middlewares/verifyIsLoggedIn";
 
 const prisma = new PrismaClient();
 dotenv.config();
@@ -39,7 +40,7 @@ export const register = async (
     console.log(req.file.path);
 
     // inputs check
-    console.log(req.body);
+
     const validation = userRegisterSchema.safeParse({
       firstName,
       lastName,
@@ -136,27 +137,33 @@ export const login = async (
     }
     const token = jwt.sign(
       {
-        user: user.id,
+        id: user.id,
       },
       process.env.JWT_SECRET as Secret,
       {
-        expiresIn: "30 days",
+        expiresIn: 90000000,
       }
     );
 
-    return res
-      .status(200)
-      .cookie("access_token", token, {
-        sameSite: "strict",
-        httpOnly: true,
-        maxAge: 9000000,
-        path: "/",
-      })
-      .json({
-        status: "success",
-        user: user,
-      });
+    res.status(200).cookie("access_token", token).json({
+      status: "success",
+      user: user,
+    });
+    next();
   } catch (err) {
     return next(err);
+  }
+};
+
+export const logout = async (
+  req: UserRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    res.clearCookie("access_token");
+    return res.status(200).json({ message: "user logged out" });
+  } catch (err) {
+    return res.status(400).json({ message: "user can not log out" });
   }
 };

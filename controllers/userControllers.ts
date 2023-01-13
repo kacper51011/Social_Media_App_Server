@@ -10,18 +10,24 @@ export const getAuthorizedUser = async (
   next: NextFunction
 ) => {
   try {
-    if (!req.user) return next();
+    if (!req.user)
+      return res
+        .status(400)
+        .json({ status: "failed", message: "couldn`t find the user" });
     const id = req.user.id;
-
-    const user = await prisma.user.findUnique({ where: { id: id } });
-
-    if (!user) return res.status(400).send("couldn`t find the user");
+    console.log(id);
+    const loggedUser = await prisma.user.findUnique({ where: { id: id } });
+    console.log(loggedUser);
+    if (!loggedUser)
+      return res
+        .status(400)
+        .json({ status: "failed", message: "couldn`t find the user" });
 
     return res.status(200).json({
-      user: user,
+      user: loggedUser,
     });
   } catch (err) {
-    return res.status(400).send(err);
+    return res.status(400).send("something went toooooooo wrong");
   }
 };
 

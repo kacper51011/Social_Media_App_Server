@@ -34,7 +34,6 @@ model Post {
   user            User      @relation(fields: [userId], references: [id])
   firstName       String
   lastName        String
-  location        String
   description     String
   userPicturePath String
   picturePath     String
