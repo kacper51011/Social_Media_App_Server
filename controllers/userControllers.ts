@@ -12,11 +12,24 @@ export const getAuthorizedUser = async (
   try {
     if (!req.user)
       return res
-        .status(400)
+        .status(200)
         .json({ status: "failed", message: "couldn`t find the user" });
     const id = req.user.id;
     console.log(id);
-    const loggedUser = await prisma.user.findUnique({ where: { id: id } });
+    const loggedUser = await prisma.user.findUnique({
+      where: { id: id },
+      include: {
+        following: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            picturePath: true,
+            job: true,
+          },
+        },
+      },
+    });
     console.log(loggedUser);
     if (!loggedUser)
       return res

@@ -10,14 +10,19 @@ export const getPosts = async (
   next: NextFunction
 ) => {
   try {
-    const skip = Number(req.query.skip) | 0;
-    const take = 10;
+    const { page } = req.params;
+    if (!page)
+      return res
+        .status(400)
+        .json({ status: "failed", message: "no page provided" });
 
+    const take = 3;
     const count = await prisma.post.count();
 
     const results = await prisma.post.findMany({
-      skip: skip,
+      skip: +req.params.page * 3 - 3,
       take: take,
+      include: { comments: true },
     });
 
     return res.status(200).json({
@@ -27,7 +32,7 @@ export const getPosts = async (
   } catch (err) {
     return res.status(400).json({
       status: "failed",
-      message: "something went wrong",
+      message: err,
     });
   }
 };
@@ -38,8 +43,9 @@ export const getUserPosts = async (
   next: NextFunction
 ) => {
   try {
-    const skip = Number(req.query.skip) | 0;
-    const take = 10;
+    console.log(req.body.page);
+    const skip = (req.body.page as number) * 3 - 3;
+    const take = 3;
 
     const count = await prisma.post.count();
 
@@ -49,6 +55,7 @@ export const getUserPosts = async (
       where: {
         userId: String(req.query.id),
       },
+      include: { comments: true },
     });
 
     return res.status(200).json({
@@ -78,7 +85,7 @@ export const createPost = async (
 
     const validation = postSchema.safeParse({
       userId: userId,
-      picturePath: req.file.path,
+      picturePath: req.file.filename,
       description: description,
     });
     if (!validation.success) {
@@ -96,8 +103,9 @@ export const createPost = async (
         lastName: String(user.lastName),
         userPicturePath: String(user.picturePath),
         userId: String(userId),
-        picturePath: String(req.file.path),
+        picturePath: String(req.file.filename),
         description: String(description),
+        job: String(user.job),
       },
     });
 
@@ -137,8 +145,10 @@ export const likeUnlikePost = async (
       return res.status(400).send("something went wrong!");
 
     if (likePost.likes.includes(likeUser.id)) {
-      likePost.likes.filter((id) => id !== likeUser.id);
-      likeUser.likedPostsIDs.filter((id) => id !== likePost.id);
+      likePost.likes = likePost.likes.filter((id) => id !== likeUser.id);
+      likeUser.likedPostsIDs = likeUser.likedPostsIDs.filter(
+        (id) => id !== likePost.id
+      );
 
       const updatedPostLikes = await prisma.post.update({
         where: { id: likePost.id },
@@ -176,10 +186,14 @@ export const commentPost = async (
 ) => {
   try {
     const { id, postId, content } = req.body;
+    const user = await prisma.user.findUnique({ where: { id: id } });
 
     const newComment = await prisma.comment.create({
       data: {
         userId: String(id),
+        userFirstName: String(user?.firstName),
+        userLastName: String(user?.lastName),
+        userPhotoPicturePath: String(user?.picturePath),
         postId: String(postId),
         content: String(content),
       },
@@ -194,5 +208,10 @@ export const commentPost = async (
       },
     });
     return res.status(200).json({ data: newComment });
-  } catch (err) {}
+  } catch (err) {
+    res.status(400).json({
+      status: "failed",
+      message: "success",
+    });
+  }
 };

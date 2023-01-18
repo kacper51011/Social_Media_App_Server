@@ -37,7 +37,6 @@ export const register = async (
         .status(400)
         .json({ status: "failed", message: "Provide correct profile photo" });
     }
-    console.log(req.file.path);
 
     // inputs check
 
@@ -75,7 +74,7 @@ export const register = async (
         lastName: String(lastName),
         password: String(req.body.password),
         email: String(email),
-        picturePath: String(req.file.path),
+        picturePath: String(req.file.filename),
         location: String(location),
         job: String(job),
       },
@@ -115,6 +114,17 @@ export const login = async (
 
     const user = await prisma.user.findUnique({
       where: { email: req.body.email },
+      include: {
+        following: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            picturePath: true,
+            job: true,
+          },
+        },
+      },
     });
 
     // is user existing in database check
