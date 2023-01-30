@@ -9,6 +9,7 @@ import {
 import {
   followUnfollow,
   getAuthorizedUser,
+  getUser,
 } from "../controllers/userControllers";
 
 const userRouter = express.Router();
@@ -21,5 +22,6 @@ userRouter.route("/checkIsVerified").get(getAuthorizedUser);
 userRouter.route("/logout").delete(logout);
 
 userRouter.route("/follow").patch(followUnfollow);
+userRouter.route("/getUser/:id").get(getUser);
 
 export default userRouter;

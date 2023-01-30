@@ -10,8 +10,7 @@ export const getPosts = async (
   next: NextFunction
 ) => {
   try {
-    const { page } = req.params;
-    if (!page)
+    if (!req.params.page)
       return res
         .status(400)
         .json({ status: "failed", message: "no page provided" });
@@ -23,6 +22,9 @@ export const getPosts = async (
       skip: +req.params.page * 3 - 3,
       take: take,
       include: { comments: true },
+      orderBy: {
+        createdAt: "desc",
+      },
     });
 
     return res.status(200).json({
@@ -43,19 +45,26 @@ export const getUserPosts = async (
   next: NextFunction
 ) => {
   try {
-    console.log(req.body.page);
-    const skip = (req.body.page as number) * 3 - 3;
+    const { page } = req.params;
+    if (!page)
+      return res
+        .status(400)
+        .json({ status: "failed", message: "no page provided" });
+
     const take = 3;
 
     const count = await prisma.post.count();
 
     const results = await prisma.post.findMany({
-      skip: skip,
+      skip: +req.params.page * 3 - 3,
       take: take,
       where: {
-        userId: String(req.query.id),
+        userId: String(req.params.id),
       },
       include: { comments: true },
+      orderBy: {
+        createdAt: "desc",
+      },
     });
 
     return res.status(200).json({
@@ -120,7 +129,7 @@ export const createPost = async (
 
     return res.status(200).json({
       status: "succes",
-      message: newPost.id,
+      message: newPost,
     });
   } catch (err) {
     return res.status(400).json({

@@ -52,11 +52,35 @@ export const getUser = async (
 ) => {
   try {
     const id = req.params.id;
-    const user = await prisma.user.findUnique({ where: { id: id } });
+    const user = await prisma.user.findUnique({
+      where: { id: id },
+      include: {
+        following: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            picturePath: true,
+            job: true,
+          },
+        },
+      },
+    });
 
-    if (!user) return res.status(400).send("couldn`t find the user");
+    if (!user)
+      return res
+        .status(400)
+        .json({ status: "failed", message: "couldn`t find the user" });
+
+    user.viewsProfile + 1;
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { viewsProfile: user.viewsProfile },
+    });
 
     return res.status(200).json({
+      status: "success",
       user: user,
     });
   } catch (err) {
@@ -107,6 +131,7 @@ export const followUnfollow = async (
       user.followingIDs = user.followingIDs.filter(
         (id) => id !== userToFollowId
       );
+
       const updatedUser = await prisma.user.update({
         where: {
           id: id,
