@@ -124,6 +124,11 @@ export const login = async (
             job: true,
           },
         },
+        posts: {
+          select: {
+            likes: true,
+          },
+        },
       },
     });
 

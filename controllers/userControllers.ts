@@ -64,6 +64,11 @@ export const getUser = async (
             job: true,
           },
         },
+        posts: {
+          select: {
+            likes: true,
+          },
+        },
       },
     });
 
@@ -72,11 +77,13 @@ export const getUser = async (
         .status(400)
         .json({ status: "failed", message: "couldn`t find the user" });
 
-    user.viewsProfile + 1;
-
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { viewsProfile: user.viewsProfile },
+    const updatedViews = await prisma.user.update({
+      where: { id: id },
+      data: {
+        viewsProfile: {
+          increment: 1,
+        },
+      },
     });
 
     return res.status(200).json({

@@ -18,14 +18,51 @@ export const getPosts = async (
     const take = 3;
     const count = await prisma.post.count();
 
-    const results = await prisma.post.findMany({
-      skip: +req.params.page * 3 - 3,
-      take: take,
-      include: { comments: true },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
+    let results;
+    if (!req.query.search) {
+      console.log("no query");
+      results = await prisma.post.findMany({
+        skip: +req.params.page * 3 - 3,
+        take: take,
+        include: { comments: true },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+    } else {
+      console.log("that way");
+      results = await prisma.post.findMany({
+        where: {
+          OR: [
+            {
+              description: {
+                contains: String(req.query.search),
+              },
+            },
+            {
+              user: {
+                firstName: {
+                  contains: String(req.query.search),
+                },
+              },
+            },
+            {
+              user: {
+                lastName: {
+                  contains: String(req.query.search),
+                },
+              },
+            },
+          ],
+        },
+        skip: +req.params.page * 3 - 3,
+        take: take,
+        include: { comments: true },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+    }
 
     return res.status(200).json({
       posts: results,
@@ -221,6 +258,52 @@ export const commentPost = async (
     res.status(400).json({
       status: "failed",
       message: "success",
+    });
+  }
+};
+
+export const deletePost = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { id, userId } = req.body;
+    console.log(id, userId);
+    if (!id || !userId) {
+      res.status(400).json({
+        status: "failed",
+        message: "no id or no userId",
+      });
+    }
+    const postToDelete = await prisma.post.findUnique({
+      where: {
+        id: String(id),
+      },
+    });
+    if (!postToDelete || postToDelete.userId !== String(userId)) {
+      res.status(400).json({
+        status: "failed",
+        message: "something went wrong",
+      });
+    }
+
+    const deletePost = await prisma.post.delete({
+      where: {
+        id: String(id),
+      },
+      include: {
+        comments: true,
+      },
+    });
+
+    res
+      .status(204)
+      .json({ status: "success", message: "post deleted successfuly!" });
+  } catch (error) {
+    res.status(400).json({
+      status: "failed",
+      message: "something went wrong",
     });
   }
 };
